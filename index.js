@@ -27,27 +27,30 @@ app.get("/api/hello", function (req, res) {
 // return date with unix key
 app.get("/api/:date?", (req, res) => {
   const { date } = req.params;
-  let unixDate;
 
   if (!date) {
-    unixDate = new Date().toUTCString();
-    return res.send({ utc: unixDate });
+    const currentUnixTime = Date.now();
+    return res.json({ utc: new Date(currentUnixTime).toUTCString(), unix: currentUnixTime });
   }
-  else {
-    const numberRegex = /^[0-9]+$/;
-    const setDate = (numberRegex.test(date)) ? date : 'Invalid Date';
 
-    unixDate = new Date(parseInt(setDate)).toUTCString();
-    if (unixDate == 'Invalid Date') {
-      return res.send({ error: 'Invalid Date' });
+  const numberRegex = /^[0-9]+$/; // Check if it's only numbers
+  const utcDate = new Date(date);
+
+  if (numberRegex.test(date)) {
+    const timestamp = parseInt(date);
+    if (isNaN(timestamp)) {
+      return res.json({ error: 'Invalid Date' });
     }
-  }
 
-  res.send({ 
-    unix: date,
-    utc: unixDate,
-  });
-})
+    return res.json({ unix: timestamp, utc: new Date(timestamp).toUTCString() });
+  } else {
+    if (isNaN(utcDate.getTime())) {
+      return res.json({ error: 'Invalid Date' });
+    }
+
+    return res.json({ unix: utcDate.getTime(), utc: utcDate.toUTCString() });
+  }
+});
 
 
 
